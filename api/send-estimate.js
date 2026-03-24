@@ -1,7 +1,5 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_EMAIL        = process.env.FROM_EMAIL;
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL;
 const COMPANY_NAME      = process.env.COMPANY_NAME      || 'Your Building Company';
@@ -271,6 +269,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid estimate data: rangeLow, rangeHigh, and total are required numbers.' });
   }
 
+  if (!process.env.RESEND_API_KEY) {
+    return res.status(500).json({ success: false, error: 'Email service not configured.' });
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const payload = { lead, config, estimate };
 
   let internalEmailSent = false;

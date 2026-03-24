@@ -56,11 +56,13 @@ export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack, es
       onSubmit();
     } catch (err) {
       setEmailError(
-        'We couldn\'t send your confirmation email, but your estimate is ready. ' +
+        "We couldn't send your confirmation email, but your estimate is ready. " +
         (err?.message ? `(${err.message})` : '')
       );
-      // Do not block user — proceed after surfacing the error
-      onSubmit();
+      setLoading(false);
+      // Show the error briefly before advancing
+      setTimeout(onSubmit, 1500);
+      return;
     } finally {
       setLoading(false);
     }
