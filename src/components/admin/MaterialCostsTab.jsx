@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { savePricingConfig } from '../../utils/pricingConfig.js';
 
 function NumericField({ label, description, value, onChange, unit }) {
   const [localVal, setLocalVal] = useState(String(value));

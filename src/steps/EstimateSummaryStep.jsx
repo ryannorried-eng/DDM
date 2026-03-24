@@ -1,4 +1,3 @@
-import { calculateEstimate } from '../utils/pricingEngine.js';
 import { formatRange, formatCurrency } from '../utils/format.js';
 import SummaryRow from '../components/SummaryRow.jsx';
 import {
@@ -12,9 +11,9 @@ function labelFor(options, id) {
   return options.find((o) => o.id === id)?.label ?? id;
 }
 
-function BreakdownRow({ label, value, note, bold = false, indent = false }) {
+function BreakdownRow({ label, value, note, bold = false }) {
   return (
-    <div className={`flex items-center justify-between py-2 border-b border-slate-50 last:border-0 ${indent ? 'pl-3' : ''}`}>
+    <div className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
       <span className={`text-sm ${bold ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>
         {label}
         {note && <span className="ml-1.5 text-xs text-slate-400 font-normal">{note}</span>}
@@ -26,8 +25,9 @@ function BreakdownRow({ label, value, note, bold = false, indent = false }) {
   );
 }
 
-export default function EstimateSummaryStep({ config, onRestart }) {
-  const { low, high, breakdown } = calculateEstimate(config);
+// estimate = the object returned by useEstimate(config) in App.jsx
+export default function EstimateSummaryStep({ config, estimate, onRestart }) {
+  const { low, high, breakdown } = estimate;
   const {
     squareFootage,
     baseStructure,
@@ -40,15 +40,13 @@ export default function EstimateSummaryStep({ config, onRestart }) {
     variancePercent,
   } = breakdown;
 
-  const sqft = (Number(config.width) || 0) * (Number(config.length) || 0);
+  const sqft = squareFootage;
   const finishOption = FINISH_OPTIONS.find((f) => f.id === config.finish);
 
   const openings = [];
-  if (config.walkDoors > 0)   openings.push(`${config.walkDoors} walk door${config.walkDoors > 1 ? 's' : ''}`);
+  if (config.walkDoors  > 0) openings.push(`${config.walkDoors} walk door${config.walkDoors > 1 ? 's' : ''}`);
   if (config.rollUpDoors > 0) openings.push(`${config.rollUpDoors} roll-up door${config.rollUpDoors > 1 ? 's' : ''}`);
-  if (config.windows > 0)     openings.push(`${config.windows} window${config.windows > 1 ? 's' : ''}`);
-
-  const hasRoofAdj = roofAdjustment !== 0;
+  if (config.windows    > 0) openings.push(`${config.windows} window${config.windows > 1 ? 's' : ''}`);
 
   return (
     <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
@@ -72,7 +70,7 @@ export default function EstimateSummaryStep({ config, onRestart }) {
           {formatRange(low, high)}
         </p>
         <p className="text-steel-300 text-xs mt-3 leading-relaxed">
-          ±{variancePercent}% variance applied · {squareFootage.toLocaleString()} sq ft · Preliminary estimate only.
+          ±{variancePercent}% variance applied · {sqft.toLocaleString()} sq ft · Preliminary estimate only.
         </p>
       </div>
 
@@ -81,9 +79,9 @@ export default function EstimateSummaryStep({ config, onRestart }) {
         <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">
           Cost Breakdown
         </h3>
-        <BreakdownRow label="Base structure"  value={formatCurrency(baseStructure)} />
-        <BreakdownRow label="Trim package"    value={`+${formatCurrency(trim)}`} />
-        {hasRoofAdj && (
+        <BreakdownRow label="Base structure" value={formatCurrency(baseStructure)} />
+        <BreakdownRow label="Trim package"   value={`+${formatCurrency(trim)}`} />
+        {roofAdjustment > 0 && (
           <BreakdownRow
             label={`${labelFor(ROOF_STYLE_OPTIONS, config.roofStyle)} roof upcharge`}
             value={`+${formatCurrency(roofAdjustment)}`}
@@ -118,15 +116,15 @@ export default function EstimateSummaryStep({ config, onRestart }) {
         <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">
           Configuration Summary
         </h3>
-        <SummaryRow label="Building Use"      value={labelFor(BUILDING_USE_OPTIONS, config.buildingUse)} />
-        <SummaryRow label="Dimensions"         value={`${config.width} × ${config.length} × ${config.height} ft`} />
-        <SummaryRow label="Square Footage"     value={`${sqft.toLocaleString()} sq ft`} />
-        <SummaryRow label="Roof Style"         value={labelFor(ROOF_STYLE_OPTIONS, config.roofStyle)} />
+        <SummaryRow label="Building Use"  value={labelFor(BUILDING_USE_OPTIONS, config.buildingUse)} />
+        <SummaryRow label="Dimensions"    value={`${config.width} × ${config.length} × ${config.height} ft`} />
+        <SummaryRow label="Square Footage" value={`${sqft.toLocaleString()} sq ft`} />
+        <SummaryRow label="Roof Style"    value={labelFor(ROOF_STYLE_OPTIONS, config.roofStyle)} />
         <SummaryRow
           label="Openings"
           value={openings.length > 0 ? openings.join(', ') : 'None'}
         />
-        <SummaryRow label="Insulation"         value={labelFor(INSULATION_OPTIONS, config.insulation)} />
+        <SummaryRow label="Insulation"    value={labelFor(INSULATION_OPTIONS, config.insulation)} />
         <SummaryRow
           label="Exterior Finish"
           value={

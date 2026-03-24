@@ -106,6 +106,7 @@ export default function App() {
               sqft={estimate.sqft}
               config={config}
               hasMinimumData={estimate.hasMinimumData}
+              breakdown={estimate.breakdown}
               currentStep={step}
               mobileOnly
             />
@@ -129,6 +130,7 @@ export default function App() {
                 sqft={estimate.sqft}
                 config={config}
                 hasMinimumData={estimate.hasMinimumData}
+                breakdown={estimate.breakdown}
                 currentStep={step}
                 desktopOnly
               />
@@ -136,7 +138,7 @@ export default function App() {
           </>
         ) : (
           /* Step 8: full-width summary, no live panel */
-          <EstimateSummaryStep config={config} onRestart={restart} />
+          <EstimateSummaryStep config={config} estimate={estimate} onRestart={restart} />
         )}
       </main>
 

@@ -1,4 +1,3 @@
-import { calculateEstimate } from '../utils/pricingEngine.js';
 import { formatCurrency } from '../utils/format.js';
 
 function formatAdder(value) {
@@ -20,10 +19,11 @@ function Row({ label, value, bold = false }) {
   );
 }
 
-export default function EstimateBreakdown({ config, hasMinimumData }) {
-  if (!hasMinimumData) return null;
+// Accepts the pre-computed breakdown object from useEstimate so the engine
+// is never called a second time just to render this panel.
+export default function EstimateBreakdown({ breakdown }) {
+  if (!breakdown) return null;
 
-  const { breakdown } = calculateEstimate(config);
   const { baseStructure, trim, roofAdjustment, insulation, openings, total } = breakdown;
 
   return (
