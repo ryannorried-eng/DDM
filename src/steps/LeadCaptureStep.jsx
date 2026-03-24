@@ -2,9 +2,11 @@ import { useState } from 'react';
 import StepLayout from '../components/StepLayout.jsx';
 import { validateLead } from '../utils/validation.js';
 
-export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack }) {
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack, estimate }) {
+  const [errors, setErrors]       = useState({});
+  const [touched, setTouched]     = useState({});
+  const [loading, setLoading]     = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   const lead = {
     name:  config.lead?.name  ?? '',
@@ -27,7 +29,7 @@ export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack }) 
     setErrors(errs);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const errs = validateLead(lead);
     setTouched({ name: true, email: true });
@@ -35,7 +37,33 @@ export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack }) 
       setErrors(errs);
       return;
     }
-    onSubmit();
+
+    setLoading(true);
+    setEmailError('');
+
+    try {
+      const res = await fetch('/api/send-estimate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ lead, config, estimate }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Request failed (${res.status})`);
+      }
+
+      onSubmit();
+    } catch (err) {
+      setEmailError(
+        'We couldn\'t send your confirmation email, but your estimate is ready. ' +
+        (err?.message ? `(${err.message})` : '')
+      );
+      // Do not block user — proceed after surfacing the error
+      onSubmit();
+    } finally {
+      setLoading(false);
+    }
   }
 
   const isValid = !validateLead(lead).name && !validateLead(lead).email;
@@ -54,6 +82,16 @@ export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack }) 
             </svg>
             Your information is private and will only be used by our team to follow up on your estimate.
           </div>
+
+          {/* Email send error (non-blocking) */}
+          {emailError && (
+            <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-200" role="alert">
+              <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              {emailError}
+            </div>
+          )}
 
           {/* Name */}
           <div>
@@ -117,7 +155,7 @@ export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack }) 
         </div>
 
         <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-6">
-          <button type="button" onClick={onBack} className="btn-secondary">
+          <button type="button" onClick={onBack} disabled={loading} className="btn-secondary">
             <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -125,13 +163,25 @@ export default function LeadCaptureStep({ config, onUpdate, onSubmit, onBack }) 
           </button>
           <button
             type="submit"
-            disabled={!isValid}
+            disabled={!isValid || loading}
             className="btn-primary px-8"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            Get My Estimate
+            {loading ? (
+              <>
+                <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Sending…
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Get My Estimate
+              </>
+            )}
           </button>
         </div>
       </form>
