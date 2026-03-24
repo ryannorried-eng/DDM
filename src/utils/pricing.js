@@ -33,3 +33,36 @@ export function calculateEstimate(config) {
 
   return { total: Math.round(total), rangeLow, rangeHigh };
 }
+
+export function getEstimateBreakdown(config) {
+  const { width, length, roofStyle, insulation, walkDoors, rollUpDoors, windows } = config;
+
+  const w = Number(width)  || 0;
+  const l = Number(length) || 0;
+
+  const roofOption     = ROOF_STYLE_OPTIONS.find((r) => r.id === roofStyle);
+  const roofMultiplier = roofOption?.multiplier ?? 1.0;
+
+  const insulationOption = INSULATION_OPTIONS.find((i) => i.id === insulation);
+  const insulationCost   = insulationOption?.adder ?? 0;
+
+  const sqft           = w * l;
+  const baseCost       = sqft * BASE_RATE_PER_SQFT;
+  const roofAdjustment = (roofMultiplier - 1) * baseCost;
+
+  const openingsCost =
+    (Number(walkDoors)   || 0) * WALK_DOOR_COST +
+    (Number(rollUpDoors) || 0) * ROLLUP_DOOR_COST +
+    (Number(windows)     || 0) * WINDOW_COST;
+
+  const total = baseCost + roofAdjustment + insulationCost + openingsCost;
+
+  return {
+    sqft,
+    baseCost:       Math.round(baseCost),
+    roofAdjustment: Math.round(roofAdjustment),
+    insulationCost,
+    openingsCost,
+    total:          Math.round(total),
+  };
+}
