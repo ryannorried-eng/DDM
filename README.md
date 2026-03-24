@@ -1,6 +1,6 @@
 # DDM Metal Building Configurator
 
-A production-quality multi-step sales configurator for **DDM Metal Building Components**. Built with React + Vite + Tailwind CSS.
+A production-quality multi-step sales configurator for **Your Building Company**. Built with React + Vite + Tailwind CSS.
 
 ## Quick Start
 
@@ -81,4 +81,4 @@ src/
 
 ## Contact
 
-DDM Metal Building Components · **979-251-9503**
+Your Building Company · **(555) 000-0000**

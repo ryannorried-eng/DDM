@@ -89,7 +89,7 @@ export default function EstimateSummaryStep({ config, onRestart }) {
           <div>
             <p className="text-sm font-semibold text-blue-900">Estimate sent to {config.lead?.email}</p>
             <p className="text-xs text-blue-700 mt-0.5">
-              A DDM representative will follow up within 24 hours.
+              A representative will follow up within 24 hours.
             </p>
           </div>
         </div>
@@ -101,10 +101,10 @@ export default function EstimateSummaryStep({ config, onRestart }) {
           Questions? Call us directly:
         </p>
         <a
-          href="tel:9792519503"
+          href="tel:5550000000"
           className="text-xl font-bold text-steel-700 hover:text-steel-900 transition-colors"
         >
-          979-251-9503
+          (555) 000-0000
         </a>
         <p className="text-xs text-slate-400 mt-1">Mon–Fri, 8am–5pm CT</p>
         <button
