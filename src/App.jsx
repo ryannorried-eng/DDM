@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Stepper from './components/Stepper.jsx';
+import LiveEstimatePanel  from './components/LiveEstimatePanel.jsx';
 import BuildingUseStep    from './steps/BuildingUseStep.jsx';
 import DimensionsStep     from './steps/DimensionsStep.jsx';
 import RoofStyleStep      from './steps/RoofStyleStep.jsx';
@@ -8,6 +9,7 @@ import InsulationStep     from './steps/InsulationStep.jsx';
 import FinishStep         from './steps/FinishStep.jsx';
 import LeadCaptureStep    from './steps/LeadCaptureStep.jsx';
 import EstimateSummaryStep from './steps/EstimateSummaryStep.jsx';
+import { useEstimate }    from './hooks/useEstimate.js';
 
 const INITIAL_CONFIG = {
   buildingUse:  null,
@@ -51,7 +53,10 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const showStepper = step < 8;
+  const showStepper   = step < 8;
+  const showLivePanel = step < 8;
+
+  const estimate = useEstimate(config);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -84,37 +89,53 @@ export default function App() {
       {/* Stepper */}
       {showStepper && <Stepper currentStep={step} />}
 
-      {/* Estimate ribbon (steps 8) */}
+      {/* Estimate ribbon (step 8) */}
       {step === 8 && (
         <div className="bg-steel-700 text-white text-center text-xs py-2 font-medium tracking-wide">
           DDM Metal Building Components · 979-251-9503
         </div>
       )}
 
-      {/* Step content */}
+      {/* Step content — two-column on desktop for steps 1–7 */}
       <main className="flex-1 flex flex-col">
-        {step === 1 && (
-          <BuildingUseStep config={config} onUpdate={update} onNext={next} />
-        )}
-        {step === 2 && (
-          <DimensionsStep config={config} onUpdate={update} onNext={next} onBack={back} />
-        )}
-        {step === 3 && (
-          <RoofStyleStep config={config} onUpdate={update} onNext={next} onBack={back} />
-        )}
-        {step === 4 && (
-          <OpeningsStep config={config} onUpdate={update} onNext={next} onBack={back} />
-        )}
-        {step === 5 && (
-          <InsulationStep config={config} onUpdate={update} onNext={next} onBack={back} />
-        )}
-        {step === 6 && (
-          <FinishStep config={config} onUpdate={update} onNext={next} onBack={back} />
-        )}
-        {step === 7 && (
-          <LeadCaptureStep config={config} onUpdate={update} onSubmit={next} onBack={back} />
-        )}
-        {step === 8 && (
+        {showLivePanel ? (
+          <>
+            {/* Mobile estimate panel sits above step content */}
+            <LiveEstimatePanel
+              formattedRange={estimate.formattedRange}
+              sqft={estimate.sqft}
+              config={config}
+              hasMinimumData={estimate.hasMinimumData}
+              currentStep={step}
+              mobileOnly
+            />
+
+            {/* Desktop: outer wrapper constrains max width; inner flex row splits content + panel */}
+            <div className="flex-1 w-full max-w-6xl mx-auto px-4 py-0 lg:py-6 lg:flex lg:items-start lg:gap-8">
+              {/* Left — step content */}
+              <div className="flex-1 min-w-0">
+                {step === 1 && <BuildingUseStep config={config} onUpdate={update} onNext={next} />}
+                {step === 2 && <DimensionsStep  config={config} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 3 && <RoofStyleStep   config={config} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 4 && <OpeningsStep    config={config} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 5 && <InsulationStep  config={config} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 6 && <FinishStep      config={config} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 7 && <LeadCaptureStep config={config} onUpdate={update} onSubmit={next} onBack={back} />}
+              </div>
+
+              {/* Right — sticky estimate panel (desktop only, rendered inside LiveEstimatePanel) */}
+              <LiveEstimatePanel
+                formattedRange={estimate.formattedRange}
+                sqft={estimate.sqft}
+                config={config}
+                hasMinimumData={estimate.hasMinimumData}
+                currentStep={step}
+                desktopOnly
+              />
+            </div>
+          </>
+        ) : (
+          /* Step 8: full-width summary, no live panel */
           <EstimateSummaryStep config={config} onRestart={restart} />
         )}
       </main>
