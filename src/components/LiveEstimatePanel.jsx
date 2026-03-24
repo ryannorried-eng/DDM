@@ -120,10 +120,10 @@ function DesktopPanel({ formattedRange, sqft, config, hasMinimumData }) {
         <div className="mt-3 rounded-xl border border-steel-100 bg-steel-50 px-4 py-3 text-center">
           <p className="text-[11px] text-steel-600 font-medium">Questions? Call us</p>
           <a
-            href="tel:9792519503"
+            href="tel:5550000000"
             className="text-base font-bold text-steel-800 hover:text-steel-900 transition-colors"
           >
-            979-251-9503
+            (555) 000-0000
           </a>
         </div>
       </div>
