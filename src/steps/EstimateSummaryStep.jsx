@@ -1,5 +1,4 @@
-import { calculateEstimate } from '../utils/pricing.js';
-import { formatRange } from '../utils/format.js';
+import { formatRange, formatCurrency } from '../utils/format.js';
 import SummaryRow from '../components/SummaryRow.jsx';
 import {
   BUILDING_USE_OPTIONS,
@@ -12,16 +11,42 @@ function labelFor(options, id) {
   return options.find((o) => o.id === id)?.label ?? id;
 }
 
-export default function EstimateSummaryStep({ config, onRestart }) {
-  const { rangeLow, rangeHigh } = calculateEstimate(config);
+function BreakdownRow({ label, value, note, bold = false }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+      <span className={`text-sm ${bold ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>
+        {label}
+        {note && <span className="ml-1.5 text-xs text-slate-400 font-normal">{note}</span>}
+      </span>
+      <span className={`text-sm tabular-nums ${bold ? 'font-bold text-steel-800' : 'text-slate-700'}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
 
-  const sqft = (Number(config.width) || 0) * (Number(config.length) || 0);
+// estimate = the object returned by useEstimate(config) in App.jsx
+export default function EstimateSummaryStep({ config, estimate, onRestart }) {
+  const { low, high, breakdown } = estimate;
+  const {
+    squareFootage,
+    baseStructure,
+    trim,
+    roofAdjustment,
+    insulation: insulationCost,
+    openings: openingsCost,
+    freight,
+    subtotal,
+    variancePercent,
+  } = breakdown;
+
+  const sqft = squareFootage;
   const finishOption = FINISH_OPTIONS.find((f) => f.id === config.finish);
 
   const openings = [];
-  if (config.walkDoors > 0)   openings.push(`${config.walkDoors} walk door${config.walkDoors > 1 ? 's' : ''}`);
+  if (config.walkDoors  > 0) openings.push(`${config.walkDoors} walk door${config.walkDoors > 1 ? 's' : ''}`);
   if (config.rollUpDoors > 0) openings.push(`${config.rollUpDoors} roll-up door${config.rollUpDoors > 1 ? 's' : ''}`);
-  if (config.windows > 0)     openings.push(`${config.windows} window${config.windows > 1 ? 's' : ''}`);
+  if (config.windows    > 0) openings.push(`${config.windows} window${config.windows > 1 ? 's' : ''}`);
 
   return (
     <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
@@ -42,10 +67,47 @@ export default function EstimateSummaryStep({ config, onRestart }) {
       <div className="bg-gradient-to-br from-steel-800 to-steel-900 rounded-2xl p-6 text-white mb-6 shadow-xl">
         <p className="text-steel-200 text-sm font-medium uppercase tracking-widest mb-2">Estimated Range</p>
         <p className="text-3xl sm:text-4xl font-bold tracking-tight">
-          {formatRange(rangeLow, rangeHigh)}
+          {formatRange(low, high)}
         </p>
         <p className="text-steel-300 text-xs mt-3 leading-relaxed">
-          This is a ballpark estimate only. Final pricing may vary based on engineering, site conditions, and selected options.
+          ±{variancePercent}% variance applied · {sqft.toLocaleString()} sq ft · Preliminary estimate only.
+        </p>
+      </div>
+
+      {/* Line-item breakdown */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">
+          Cost Breakdown
+        </h3>
+        <BreakdownRow label="Base structure" value={formatCurrency(baseStructure)} />
+        <BreakdownRow label="Trim package"   value={`+${formatCurrency(trim)}`} />
+        {roofAdjustment > 0 && (
+          <BreakdownRow
+            label={`${labelFor(ROOF_STYLE_OPTIONS, config.roofStyle)} roof upcharge`}
+            value={`+${formatCurrency(roofAdjustment)}`}
+          />
+        )}
+        {insulationCost > 0 && (
+          <BreakdownRow
+            label={`Insulation — ${labelFor(INSULATION_OPTIONS, config.insulation)}`}
+            value={`+${formatCurrency(insulationCost)}`}
+          />
+        )}
+        {openingsCost > 0 && (
+          <BreakdownRow
+            label="Doors & windows"
+            note={openings.join(', ')}
+            value={`+${formatCurrency(openingsCost)}`}
+          />
+        )}
+        {freight > 0 && (
+          <BreakdownRow label="Freight" value={`+${formatCurrency(freight)}`} />
+        )}
+        <div className="border-t border-slate-200 mt-2 pt-2">
+          <BreakdownRow label="Subtotal" value={formatCurrency(subtotal)} bold />
+        </div>
+        <p className="text-xs text-slate-400 mt-3">
+          Estimate range: {formatCurrency(low)} – {formatCurrency(high)} (±{variancePercent}%)
         </p>
       </div>
 
@@ -54,15 +116,15 @@ export default function EstimateSummaryStep({ config, onRestart }) {
         <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">
           Configuration Summary
         </h3>
-        <SummaryRow label="Building Use"      value={labelFor(BUILDING_USE_OPTIONS, config.buildingUse)} />
-        <SummaryRow label="Dimensions"         value={`${config.width} × ${config.length} × ${config.height} ft`} />
-        <SummaryRow label="Square Footage"     value={`${sqft.toLocaleString()} sq ft`} />
-        <SummaryRow label="Roof Style"         value={labelFor(ROOF_STYLE_OPTIONS, config.roofStyle)} />
+        <SummaryRow label="Building Use"  value={labelFor(BUILDING_USE_OPTIONS, config.buildingUse)} />
+        <SummaryRow label="Dimensions"    value={`${config.width} × ${config.length} × ${config.height} ft`} />
+        <SummaryRow label="Square Footage" value={`${sqft.toLocaleString()} sq ft`} />
+        <SummaryRow label="Roof Style"    value={labelFor(ROOF_STYLE_OPTIONS, config.roofStyle)} />
         <SummaryRow
           label="Openings"
           value={openings.length > 0 ? openings.join(', ') : 'None'}
         />
-        <SummaryRow label="Insulation"         value={labelFor(INSULATION_OPTIONS, config.insulation)} />
+        <SummaryRow label="Insulation"    value={labelFor(INSULATION_OPTIONS, config.insulation)} />
         <SummaryRow
           label="Exterior Finish"
           value={

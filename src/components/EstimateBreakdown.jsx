@@ -1,4 +1,3 @@
-import { getEstimateBreakdown } from '../utils/pricing.js';
 import { formatCurrency } from '../utils/format.js';
 
 function formatAdder(value) {
@@ -20,11 +19,12 @@ function Row({ label, value, bold = false }) {
   );
 }
 
-export default function EstimateBreakdown({ config, hasMinimumData }) {
-  if (!hasMinimumData) return null;
+// Accepts the pre-computed breakdown object from useEstimate so the engine
+// is never called a second time just to render this panel.
+export default function EstimateBreakdown({ breakdown }) {
+  if (!breakdown) return null;
 
-  const { baseCost, roofAdjustment, insulationCost, openingsCost, total } =
-    getEstimateBreakdown(config);
+  const { baseStructure, trim, roofAdjustment, insulation, openings, total } = breakdown;
 
   return (
     <div>
@@ -32,15 +32,16 @@ export default function EstimateBreakdown({ config, hasMinimumData }) {
         Price Breakdown
       </p>
       <div>
-        <Row label="Base building" value={formatCurrency(baseCost)} />
-        <Row label="Roof style"    value={formatAdder(roofAdjustment)} />
+        <Row label="Base structure"  value={formatCurrency(baseStructure)} />
+        <Row label="Trim"            value={formatAdder(trim)} />
+        <Row label="Roof style"      value={formatAdder(roofAdjustment)} />
         <Row
           label="Insulation"
-          value={insulationCost === 0 ? 'None' : `+${formatCurrency(insulationCost)}`}
+          value={insulation === 0 ? 'None' : `+${formatCurrency(insulation)}`}
         />
         <Row
           label="Openings"
-          value={openingsCost === 0 ? 'None' : `+${formatCurrency(openingsCost)}`}
+          value={openings === 0 ? 'None' : `+${formatCurrency(openings)}`}
         />
         <div className="border-t border-slate-100 my-1.5" />
         <Row label="Total" value={formatCurrency(total)} bold />

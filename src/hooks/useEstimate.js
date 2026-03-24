@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { calculateEstimate } from '../utils/pricing.js';
+import { calculateEstimate } from '../utils/pricingEngine.js';
 import { formatRange } from '../utils/format.js';
 import { DIMENSION_CONSTRAINTS } from '../data/options.js';
 
@@ -23,23 +23,29 @@ export function useEstimate(config) {
     if (!hasMinimumData) {
       return {
         total:          0,
+        low:            0,
+        high:           0,
         rangeLow:       0,
         rangeHigh:      0,
         formattedRange: '',
         sqft,
         hasMinimumData: false,
+        breakdown:      null,
       };
     }
 
-    const { total, rangeLow, rangeHigh } = calculateEstimate(config);
+    const result = calculateEstimate(config);
 
     return {
-      total,
-      rangeLow,
-      rangeHigh,
-      formattedRange: formatRange(rangeLow, rangeHigh),
+      total:          result.total,
+      low:            result.low,
+      high:           result.high,
+      rangeLow:       result.low,
+      rangeHigh:      result.high,
+      formattedRange: formatRange(result.low, result.high),
       sqft,
       hasMinimumData: true,
+      breakdown:      result.breakdown,
     };
   }, [config]);
 }

@@ -36,7 +36,7 @@ function buildSummaryLines(config) {
 }
 
 // ── Desktop sticky panel ───────────────────────────────────────────────────
-function DesktopPanel({ formattedRange, sqft, config, hasMinimumData }) {
+function DesktopPanel({ formattedRange, sqft, config, hasMinimumData, breakdown }) {
   const summaryLines = hasMinimumData ? buildSummaryLines(config) : [];
 
   return (
@@ -63,13 +63,13 @@ function DesktopPanel({ formattedRange, sqft, config, hasMinimumData }) {
                     {formattedRange}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    {sqft.toLocaleString()} sq ft · ±15% ballpark
+                    {sqft.toLocaleString()} sq ft · ±{breakdown?.variancePercent ?? 12}% ballpark
                   </p>
                 </div>
 
-                {/* Price breakdown */}
+                {/* Price breakdown — uses pre-computed breakdown, no engine re-call */}
                 <div className="mb-4">
-                  <EstimateBreakdown config={config} hasMinimumData={hasMinimumData} />
+                  <EstimateBreakdown breakdown={breakdown} />
                 </div>
 
                 {/* Divider */}
@@ -132,7 +132,7 @@ function DesktopPanel({ formattedRange, sqft, config, hasMinimumData }) {
 }
 
 // ── Mobile collapsible panel ───────────────────────────────────────────────
-function MobilePanel({ formattedRange, sqft, config, hasMinimumData, currentStep }) {
+function MobilePanel({ formattedRange, sqft, config, hasMinimumData, breakdown }) {
   const [open, setOpen] = useState(false);
   const summaryLines = hasMinimumData ? buildSummaryLines(config) : [];
 
@@ -182,7 +182,8 @@ function MobilePanel({ formattedRange, sqft, config, hasMinimumData, currentStep
                   <p className="text-xs text-slate-400">{sqft.toLocaleString()} sq ft</p>
                 </div>
                 <div className="mt-3 pt-3 border-t border-slate-100">
-                  <EstimateBreakdown config={config} hasMinimumData={hasMinimumData} />
+                  {/* Uses pre-computed breakdown, no engine re-call */}
+                  <EstimateBreakdown breakdown={breakdown} />
                 </div>
 
                 {summaryLines.length > 0 && (
@@ -220,6 +221,7 @@ export default function LiveEstimatePanel({
   sqft,
   config,
   hasMinimumData,
+  breakdown,
   currentStep,
   mobileOnly  = false,
   desktopOnly = false,
@@ -237,7 +239,7 @@ export default function LiveEstimatePanel({
           sqft={sqft}
           config={config}
           hasMinimumData={hasMinimumData}
-          currentStep={currentStep}
+          breakdown={breakdown}
         />
       )}
       {showDesktop && (
@@ -246,6 +248,7 @@ export default function LiveEstimatePanel({
           sqft={sqft}
           config={config}
           hasMinimumData={hasMinimumData}
+          breakdown={breakdown}
         />
       )}
     </>
