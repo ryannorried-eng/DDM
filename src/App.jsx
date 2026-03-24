@@ -120,7 +120,7 @@ export default function App() {
                 {step === 4 && <OpeningsStep    config={config} onUpdate={update} onNext={next} onBack={back} />}
                 {step === 5 && <InsulationStep  config={config} onUpdate={update} onNext={next} onBack={back} />}
                 {step === 6 && <FinishStep      config={config} onUpdate={update} onNext={next} onBack={back} />}
-                {step === 7 && <LeadCaptureStep config={config} onUpdate={update} onSubmit={next} onBack={back} />}
+                {step === 7 && <LeadCaptureStep config={config} onUpdate={update} onSubmit={next} onBack={back} estimate={estimate} />}
               </div>
 
               {/* Right — sticky estimate panel (desktop only, rendered inside LiveEstimatePanel) */}
