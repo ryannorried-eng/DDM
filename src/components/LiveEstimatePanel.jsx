@@ -5,6 +5,7 @@ import {
   INSULATION_OPTIONS,
   FINISH_OPTIONS,
 } from '../data/options.js';
+import EstimateBreakdown from './EstimateBreakdown.jsx';
 
 function labelFor(options, id) {
   return options.find((o) => o.id === id)?.label ?? null;
@@ -64,6 +65,11 @@ function DesktopPanel({ formattedRange, sqft, config, hasMinimumData }) {
                   <p className="text-[11px] text-slate-400 mt-1">
                     {sqft.toLocaleString()} sq ft · ±15% ballpark
                   </p>
+                </div>
+
+                {/* Price breakdown */}
+                <div className="mb-4">
+                  <EstimateBreakdown config={config} hasMinimumData={hasMinimumData} />
                 </div>
 
                 {/* Divider */}
@@ -175,8 +181,12 @@ function MobilePanel({ formattedRange, sqft, config, hasMinimumData, currentStep
                   </div>
                   <p className="text-xs text-slate-400">{sqft.toLocaleString()} sq ft</p>
                 </div>
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <EstimateBreakdown config={config} hasMinimumData={hasMinimumData} />
+                </div>
+
                 {summaryLines.length > 0 && (
-                  <ul className="space-y-1 mt-2">
+                  <ul className="space-y-1 mt-3 pt-3 border-t border-slate-100">
                     {summaryLines.map((line) => (
                       <li key={line} className="flex items-center gap-2 text-xs text-slate-500">
                         <span className="flex-shrink-0 w-1 h-1 rounded-full bg-steel-400" />
